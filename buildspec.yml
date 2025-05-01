@@ -1,37 +1,33 @@
 version: 0.2
 
+env:
+  variables:
+    AWS_REGION: us-east-1
+    REPOSITORY_URI: 039612878337.dkr.ecr.$AWS_REGION.amazonaws.com/my-app
+    IMAGE_TAG: latest
+
 phases:
   install:
+    runtime-versions:
+      docker: 20
     commands:
-      # Install Docker and other dependencies (if required)
       - echo Installing dependencies...
-      - yum install -y docker
+      - echo Starting Docker service...
       - service docker start
-
+      - docker info
+      - aws --version
   pre_build:
     commands:
-      # Logging in to Amazon ECR
       - echo Logging in to Amazon ECR...
-      - aws --version
-      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin 039612878337.dkr.ecr.$AWS_REGION.amazonaws.com
-      
-      # Logging in to Docker Hub (optional, if you still need to pull from Docker Hub)
-      - echo Logging in to Docker Hub...
-      - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-      
-      # Set repository URI and image tag
-      - REPOSITORY_URI=039612878337.dkr.ecr.$AWS_REGION.amazonaws.com/my-app
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
+      - echo "Repository URI: $REPOSITORY_URI"
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-
   build:
     commands:
-      # Build the Docker image
       - echo Building the Docker image...
       - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
-
   post_build:
     commands:
-      # Push the Docker image to ECR
       - echo Pushing the Docker image...
       - docker push $REPOSITORY_URI:$IMAGE_TAG
 
