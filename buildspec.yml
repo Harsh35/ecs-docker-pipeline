@@ -1,12 +1,16 @@
 version: 0.2
 
+env:
+  variables:
+    AWS_REGION: us-east-1
+
 phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
       - aws --version
-      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 039612878337.dkr.ecr.us-east-1.amazonaws.com
-      - REPOSITORY_URI=<your-account-id>.dkr.ecr.$AWS_REGION.amazonaws.com/my-app
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin 039612878337.dkr.ecr.$AWS_REGION.amazonaws.com
+      - REPOSITORY_URI=039612878337.dkr.ecr.$AWS_REGION.amazonaws.com/my-app
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
   build:
     commands:
@@ -19,5 +23,6 @@ phases:
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - docker push $REPOSITORY_URI:latest
       - printf '[{"name":"app","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+
 artifacts:
   files: imagedefinitions.json
