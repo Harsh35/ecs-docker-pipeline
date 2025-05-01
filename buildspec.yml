@@ -4,7 +4,6 @@ env:
   variables:
     AWS_REGION: us-east-1
     REPOSITORY_URI: 039612878337.dkr.ecr.$AWS_REGION.amazonaws.com/my-app
-    IMAGE_TAG: latest
 
 phases:
   install:
